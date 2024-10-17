@@ -8,6 +8,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, X, Copy } from 'lucide-react';
 import ThemeToggle from '@/components/theme-toggle';
 
+interface FormData {
+  userStory: {
+    as: string;
+    want: string;
+    so: string;
+  };
+  acceptanceCriteria: { type: string; content: string }[];
+  definitionOfDone: string;
+  description: string;
+  notes: string;
+}
+
 const JiraTicketCreator = () => {
   const [activeTab, setActiveTab] = useState("user-story");
   const [formData, setFormData] = useState({
@@ -31,40 +43,54 @@ const JiraTicketCreator = () => {
     }
   }, []);
 
-  const handleInputChange = (e, section, field, index) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    section: keyof FormData,
+    field?: string | null,
+    index?: number
+  ) => {
     const { value } = e.target;
     setFormData((prevData) => {
       if (section === 'acceptanceCriteria') {
         const newAcceptanceCriteria = [...prevData.acceptanceCriteria];
-        newAcceptanceCriteria[index] = { ...newAcceptanceCriteria[index], content: value };
+        newAcceptanceCriteria[index ?? -1] = {
+          ...newAcceptanceCriteria[index ?? -1],
+          content: value,
+        };
         return { ...prevData, acceptanceCriteria: newAcceptanceCriteria };
       } else if (field) {
-        return { ...prevData, [section]: { ...prevData[section], [field]: value } };
+        if (typeof prevData[section] === 'object' && prevData[section] !== null) {
+          return {
+            ...prevData,
+            [section]: { ...(prevData[section] as object), [field]: value },
+          };
+        } else {
+          // Handle the case where prevData[section] is not an object
+          return { ...prevData, [section]: { [field]: value } };
+        }
       } else {
         return { ...prevData, [section]: value };
       }
     });
   };
 
-  const addAcceptanceCriteria = (type) => {
+  const addAcceptanceCriteria = (type: string) => {
     setFormData((prevData) => ({
       ...prevData,
       acceptanceCriteria: [...prevData.acceptanceCriteria, { type, content: "" }]
     }));
   };
 
-  const removeAcceptanceCriteria = (index) => {
+  const removeAcceptanceCriteria = (index: number) => {
     setFormData((prevData) => ({
       ...prevData,
       acceptanceCriteria: prevData.acceptanceCriteria.filter((_, i) => i !== index)
     }));
   };
 
-  const handleSave = () => {
-    localStorage.setItem('jiraTicketData', JSON.stringify(formData));
-  };
+  type FormDataKey = keyof typeof formData;
 
-  const hasContent = (section) => {
+  const hasContent = (section: FormDataKey) => {
     if (section === 'userStory') {
       return Object.values(formData.userStory).some(val => val.trim() !== '');
     } else if (section === 'acceptanceCriteria') {
@@ -151,7 +177,7 @@ const JiraTicketCreator = () => {
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       // Optionally provide feedback to the user that the copy was successful
       console.log("Copied to clipboard!");
@@ -160,9 +186,11 @@ const JiraTicketCreator = () => {
     });
   };
   
+  function isFormDataKey(key: string): key is keyof FormData {
+    return ['userStory', 'acceptanceCriteria', 'definitionOfDone', 'description', 'notes'].includes(key);
+  }  
   
-  
-  const formatStructuredContent = (section) => {
+  const formatStructuredContent = (section: FormDataKey) => {
     if (section === 'userStory') {
       return `As a ${formData.userStory.as}, I want ${formData.userStory.want} so that ${formData.userStory.so}.`;
     } else if (section === 'acceptanceCriteria') {
@@ -201,8 +229,8 @@ const JiraTicketCreator = () => {
           <Input
             id={`userStory-${field}`}
             name={`userStory-${field}`}
-            value={formData.userStory[field]}
-            onChange={(e) => handleInputChange(e, "userStory", field)}
+            value={formData.userStory[field as keyof typeof formData.userStory]}
+            onChange={(e) => handleInputChange(e, "userStory", field as keyof typeof formData.userStory)}
             placeholder={`Enter ${field}...`}
           />
         </div>
@@ -379,7 +407,11 @@ const JiraTicketCreator = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {Object.keys(formData).map((key) => (
+          {Object.keys(formData).map((key) => {
+            if (!isFormDataKey(key)) {
+              return null; // Or handle the invalid key appropriately
+            }
+            return (
               hasContent(key) && ( // Conditionally render the section
                 <div key={key} className="bg-muted p-4 rounded-md">
                   <h3 className="font-bold mb-2">{key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim()}</h3>
@@ -387,7 +419,8 @@ const JiraTicketCreator = () => {
                   <Button onClick={() => copyToClipboard(formatStructuredContent(key))} className="mt-2">Copy to Clipboard</Button>
                 </div>
               )
-            ))}
+            );
+          })}
           </div>
         </CardContent>
       </Card>
