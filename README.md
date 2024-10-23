@@ -8,7 +8,6 @@ Streamline your Jira ticket creation process with this intuitive and efficient h
 * **Auto-Magic Generation:**  Watch as your input transforms into perfectly formatted, Jira-ready text.
 * **Copy with Ease:**  Copy individual sections (user story, acceptance criteria, etc.) or grab the entire generated ticket information with the "Copy All" button.  Just paste into Jira!
 * **Template Power:**  Jumpstart your ticket creation with pre-defined templates. Cycle through different options with a single click.
-* **Data Persistence:**  Your data is safe with us!  Even if you refresh the page, your diligently entered information will be preserved.
 * **Squeaky Clean Reset:**  Start fresh anytime with the reset button, which clears all entered data and local storage.
 * **Smart Display:**  Only see what you need. Generated Jira ticket information sections are hidden by default until you add content.
 * **Day ☀️ & Night 🌙 Modes:**  Choose your preferred visual environment with light and dark theme options, persistently stored in your browser.
@@ -45,7 +44,6 @@ We maintain top-notch code quality with ESLint, TypeScript support, and React pl
 
 ## 📝 Additional Notes
 
-* Data persistence is achieved using local storage.
 * Your chosen theme (light/dark/system) is also saved locally.
 
 
